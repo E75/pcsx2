@@ -354,13 +354,13 @@ static bool parse_slot(std::string_view text, s32* slot)
 static std::vector<std::string> split_args(std::string_view text)
 {
 	std::vector<std::string> out;
-	text = trim(text);
-	while (!text.empty())
+	std::string rest(trim(text)); // own the storage: a view into the per-iteration `tail` would dangle
+	while (!rest.empty())
 	{
-		const auto [head, tail] = split_command(text);
+		const auto [head, tail] = split_command(rest);
 		if (!head.empty())
 			out.push_back(head);
-		text = trim(tail);
+		rest = std::string(trim(tail));
 	}
 	return out;
 }
@@ -438,7 +438,8 @@ GDBServer::GDBServer(DebugInterface* debugInterface)
 
 void GDBServer::onClientConnected()
 {
-	pauseExecution();
+	// No pause here: VMManager::SetPaused() from the server thread can hang (seen after a state load, log stops at
+	// "(VMManager) Pausing..."). Clients pause explicitly with `qPcsx2:pause`, which runs on the CPU thread.
 }
 
 void GDBServer::onClientDisconnected()
