@@ -9,6 +9,7 @@
 #include "MIPSAnalyst.h"
 #include "MTGS.h"
 #include "Patch.h"
+#include "PerformanceMetrics.h"
 #include "SIO/Pad/Pad.h"
 #include "VMManager.h"
 
@@ -1252,6 +1253,13 @@ std::string GDBServer::runPcsx2Command(std::string_view command_view)
 	const auto [verb, argument] = split_command(command_view);
 	if (verb == "status")
 		return getStatusString();
+
+	if (verb == "perf")
+	{
+		return fmt::format("OK internal_fps={:.2f} internal_valid={} vps={:.2f} speed={:.1f} frame={}",
+			PerformanceMetrics::GetInternalFPS(), PerformanceMetrics::IsInternalFPSValid() ? 1 : 0,
+			PerformanceMetrics::GetFPS(), PerformanceMetrics::GetSpeed(), PerformanceMetrics::GetFrameNumber());
+	}
 
 	if (verb == "debug_registers")
 	{
